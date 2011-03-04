@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#
+# Filter out prefix from args
+#
+
+cd ${S}
+./configure --prefix=${D} $@
