@@ -1,1 +1,5 @@
-src/*.obin/*.komodotoolsmpkg.komodoproject
+src/*.o
+src/mpkg
+bin/*
+.komodotools
+mpkg.komodoproject
