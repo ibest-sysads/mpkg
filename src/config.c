@@ -10,8 +10,9 @@ char *ConfigParseVars(line)
 	char* lptr = line;
 	char* vptr = value;
 	
-	while( *lptr != '\n' ) {
+	while( *lptr && *lptr != '\n' ) {
 		if( *lptr == '$' ) {
+			
 			// Move past the '$' and if there is a '{' then move past that
 			// as well.
 			lptr++;
@@ -74,11 +75,13 @@ int ConfigParseEnvironment(filename)
 	
 	while( fgets(buffer,sizeof(char)*MAX_LINE,fp) != NULL ) {
 		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: %s",buffer);
+		fprintf(stderr,"DEBUG: Config line: %s",buffer);
 		#endif
 		
 		int count = sscanf(buffer,"%s = %s\n",key,value);
 		if( count == 2 ) {
+			fprintf(stderr,"DEBUG: Config key: %s\n",key);
+			fprintf(stderr,"DEBUG: Config value: %s\n",value);
 			char *parsed = ConfigParseVars(value);
 			int retval = setenv(key,parsed,1);
 			if(retval) fprintf(stderr,"Could not set %s to %s\n",key,parsed);
@@ -98,3 +101,4 @@ int ConfigParseEnvironment(filename)
 	free(value);
 	return 0;
 }
+

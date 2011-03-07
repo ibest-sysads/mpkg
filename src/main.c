@@ -1,22 +1,76 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
+#include <unistd.h>
+#include <getopt.h>
 #include "globals.h"
 #include "package.h" 
 #include "control.h"
 
+#define CONFIGPATH_LENGTH 2048
+
+static int opt_debug;
+char opt_config[CONFIGPATH_LENGTH];
+static struct option long_options[] = {
+	{"config",	1, 0, 	'c'},
+	{"help",	0, 0, 	'h'},
+	{"debug",	0, 0,	0},
+	{0,0,0,0}
+};
+
+void ShowUsage() {
+	printf("Showing usage\n");
+	exit(0);
+}
+
+static int GetOptions(argc,argv)
+	int argc;
+	char *argv[];
+{
+	int c;
+	int option_index;
+
+	// Set up defaults
+	opt_debug = 0;
+	strncpy(opt_config,"/etc/mpkg/mpkg.conf",CONFIGPATH_LENGTH);
+	
+	while(1) {
+		c = getopt_long(argc,argv,"c:hd",long_options,&option_index);
+		if(c == -1) break;
+		switch(c) {
+			case 'h':
+				ShowUsage();
+				break;
+			case 'c':
+				strncpy(opt_config,optarg,CONFIGPATH_LENGTH);
+				break;
+			case 'd':
+				opt_debug = 1;
+				break;
+			default:
+				ShowUsage();
+				break;
+		}
+	}
+	return optind;
+}
 
 int main(argc,argv)
 	int argc;
 	char **argv;
 {
+	int optlen;
+	optlen = GetOptions(argc,argv);
+	argv += optlen;
+	argc -= optlen;
+
 	#ifdef _GLOBALCONF
 	char *globalconf = strdup("etc/mpkg.conf");
 	#else
 	char *globalconf = strdup("/etc/mpkg/mpkg.conf");
 	#endif
 	
-	if( ConfigParseEnvironment(globalconf) > 0 ) exit(1);
+	if( ConfigParseEnvironment(opt_config) > 0 ) exit(1);
 
 	package *p1,*p2,*p3,*p4,*p5,*p6;
 
