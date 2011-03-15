@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TESTS="package control"
+TESTS="package control config"
 
 make
 

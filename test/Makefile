@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-O0 -g -D _GLOBALCONF -lcunit -fprofile-arcs -ftest-coverage
 
-all: test-package test-control
+all: test-package test-control test-config
 
 #package
 test-package: test-package.o package.o ../src/package.o
@@ -28,6 +28,19 @@ control.o: control.c control.h test-control.h
 
 ../src/control.o: ../src/control.c ../src/control.h
 	gcc $(CFLAGS) -c ../src/control.c -o ../src/control.o
+
+#config
+test-config: test-config.o config.o ../src/config.o
+	gcc $(CFLAGS) -o test-config $^
+
+test-config.o: test-config.c test-config.h config.h
+	gcc $(CFLAGS) -c test-config.c -o test-config.o
+
+config.o: config.c config.h test-config.h
+	gcc $(CFLAGS) -c config.c -o config.o
+
+../src/config.o: ../src/config.c ../src/config.h
+	gcc $(CFLAGS) -c ../src/config.c -o ../src/config.o
 
 
 clean:

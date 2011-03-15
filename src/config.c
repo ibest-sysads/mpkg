@@ -28,7 +28,7 @@ char *ConfigParseVars(line)
 			}
 			*bptr = '\0';
 			env = getenv(buffer);
-			
+
 			#ifdef DEBUG
 			fprintf(stderr,"DEBUG: Parsed variable: %s\n",buffer);
 			fprintf(stderr,"DEBUG: Parsed value: %s\n",env);

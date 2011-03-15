@@ -1,7 +1,11 @@
 src/*.o
 src/mpkg
-src/package.c.gcov
-src/package.gcno
+src/*.gcov
+src/*.gcno
+src/*.gcda
+test/*.gcov
+test/*.gcno
+test/*.gcda
 bin/*
 .komodotools
 mpkg.komodoproject
