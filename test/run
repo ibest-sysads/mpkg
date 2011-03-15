@@ -1,0 +1,17 @@
+#!/bin/bash
+
+make
+
+if [[ $? != 0 ]]; then exit 1; fi
+	
+./test-package
+
+
+#coverage reports
+cd ../src
+#for file in `ls *.c`; do
+for file in "package.c"; do
+	gcov $file
+done
+
+echo 'If you were expecting increased coverage, try a "make clean"'
