@@ -6,7 +6,10 @@ src/*.gcda
 test/*.gcov
 test/*.gcno
 test/*.gcda
+test/test-package
+test/test-config
+test/test-control
 bin/*
 .komodotools
 mpkg.komodoproject
-
+samples/etc/mpkg-colby.conf

@@ -9,17 +9,30 @@
 
 #define CONFIGPATH_LENGTH 2048
 
+//not sure where to put these...
+char *main_pkg_name, *main_pkg_version;
+
 static int opt_debug;
 char opt_config[CONFIGPATH_LENGTH];
 static struct option long_options[] = {
 	{"config",	1, 0, 	'c'},
+	{"install",	1, 0, 	'i'},
+	{"version",	1, 0, 	'v'},
 	{"help",	0, 0, 	'h'},
 	{"debug",	0, 0,	0},
 	{0,0,0,0}
 };
 
 void ShowUsage() {
-	printf("Showing usage\n");
+	printf("Usage: mpkg [options]\n");
+	printf("Options:\n");
+	printf(" -c FILE, config FILE\n");
+	printf("		Environment configuration file\n");
+	printf(" -i <name>, install <name> \n");
+	printf("		Package install\n");
+	printf(" -v <version>, install <version> \n");
+	printf("		Package version\n");
+	printf("Report bugs to /dev/null\n");
 	exit(0);
 }
 
@@ -35,7 +48,7 @@ static int GetOptions(argc,argv)
 	strncpy(opt_config,"/etc/mpkg/mpkg.conf",CONFIGPATH_LENGTH);
 	
 	while(1) {
-		c = getopt_long(argc,argv,"c:hd",long_options,&option_index);
+		c = getopt_long(argc,argv,"c:i:v:hd",long_options,&option_index);
 		if(c == -1) break;
 		switch(c) {
 			case 'h':
@@ -43,6 +56,16 @@ static int GetOptions(argc,argv)
 				break;
 			case 'c':
 				strncpy(opt_config,optarg,CONFIGPATH_LENGTH);
+				break;
+			case 'i':
+				main_pkg_name = (char*)malloc(sizeof(char*) * \
+							strlen(optarg));
+				main_pkg_name = strdup(optarg);
+				break;
+			case 'v':
+				main_pkg_version = (char*)malloc(sizeof(char*)\
+							* strlen(optarg));
+				main_pkg_version = strdup(optarg);
 				break;
 			case 'd':
 				opt_debug = 1;
@@ -72,39 +95,13 @@ int main(argc,argv)
 	
 	if( ConfigParseEnvironment(opt_config) > 0 ) exit(1);
 
-	package *p1,*p2,*p3,*p4,*p5,*p6;
+	package *mainp = PackageInit(main_pkg_name);
+	PackageSetVersion(mainp,main_pkg_version);
+	PackageLoadConfig(mainp);
 
-	p1 = PackageInit("test-one");
-	p2 = PackageInit("test-two");
-	p3 = PackageInit("test-three");
-	p4 = PackageInit("test-four");
-	p5 = PackageInit("test-five");
-	p6 = PackageInit("test-six");
-	
-	PackageSetVersion(p1,"1.1");
-	PackageSetVersion(p2,"1.2");
-	PackageSetVersion(p3,"1.3");
-	PackageSetVersion(p4,"1.4");
-	PackageSetVersion(p5,"1.5");
-	PackageSetVersion(p6,"1.6");
-	
-	PackageLoadConfig(p1);
-	PackageLoadConfig(p2);
-	PackageLoadConfig(p3);
-	PackageLoadConfig(p4);
-	PackageLoadConfig(p5);
-	PackageLoadConfig(p6);
+	PackageDestroy(mainp);
 
-	PackageAddDepends(p1,p2);
-	PackageAddDepends(p1,p3);
-	PackageAddDepends(p3,p4);
-	PackageAddDepends(p4,p5);
-	PackageAddDepends(p4,p6);
-	PackageAddDepends(p1,p6);
-	
-	PackagePrint(p1); 
-	ControlBuild(p1);
-	PackageDestroy(p1);
-	
+	//cleanup
+	//this seg faults, no changes were knowingly made	
 	free(globalconf);
 }

@@ -46,6 +46,9 @@ int PackageLoadConfig( p )
 	#ifdef DEBUG
 	fprintf(stderr,"DEBUG: Loading package file: %s\n",filename);
 	#endif
+
+	//call config to load main pkg file
+
 	return 0;
 }
 
