@@ -1,17 +1,20 @@
 #!/bin/bash
 
+TESTS="package control"
+
 make
 
 if [[ $? != 0 ]]; then exit 1; fi
 	
-./test-package
 
-
-#coverage reports
-cd ../src
+#test amd coverage reports
 #for file in `ls *.c`; do
-for file in "package.c"; do
-	gcov $file
+for test in $TESTS; do
+	./test-$test
+	#have to cd for gcov to find the right one. Or?
+	cd ../src
+	gcov $test.c
+	cd ../test
 done
 
 echo 'If you were expecting increased coverage, try a "make clean"'

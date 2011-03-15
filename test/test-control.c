@@ -4,8 +4,8 @@
 
 /* Pointer to the file used by the tests. */
 /*static FILE* temp_file = NULL;*/
-#include "test-package.h"
-#include "package.h"
+#include "test-control.h"
+#include "control.h"
 
 /* The suite initialization function.
  * Returns zero on success, non-zero otherwise.
@@ -38,19 +38,16 @@ int main()
       return CU_get_error();
 
    /* add a suite to the registry */
-   pSuite = CU_add_suite("test_package", init_suite, clean_suite);
+   pSuite = CU_add_suite("test_control", init_suite, clean_suite);
    if (NULL == pSuite) {
       CU_cleanup_registry();
       return CU_get_error();
    }
 
    /* add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "test of PackageInit()",  testPackageInit))
-	|| (NULL == CU_add_test(pSuite, "test of PackageSetVersion()",  testPackageSetVersion))
-	|| (NULL == CU_add_test(pSuite, "test of PackageLoadConfig()",  testPackageLoadConfig))
-	|| (NULL == CU_add_test(pSuite, "test of PackageAddDepends()",  testPackageAddDepends))
-	|| (NULL == CU_add_test(pSuite, "test of PackageDestroy",  testPackageDestroy))
-	|| (NULL == CU_add_test(pSuite, "test of PackagePrint",  testPackagePrint))
+   if ((NULL == CU_add_test(pSuite, "test of testControlUnsetEnv()",  testControlUnsetEnv))
+	|| (NULL == CU_add_test(pSuite, "test of testControlSetEnv()",  testControlSetEnv))
+	|| (NULL == CU_add_test(pSuite, "test of testControlBuild()",  testControlBuild))
 	)
    {
       printf("Failed to add test?\n");
