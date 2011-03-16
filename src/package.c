@@ -31,6 +31,70 @@ void PackageSetVersion( p,v )
 	p->version = strdup(v);
 }
 
+int PackageDownloadConfig( p ) 
+	package *p;
+{
+	if(p->version == NULL) {
+		fprintf(stderr,"ERROR (%s): Package version has not been set. \
+						Cannot continue.",p->name);
+		return 1;
+	}
+
+	char *destdir = getenv("MPKG_CONF_DIR");
+	if(destdir == NULL) {
+		fprintf(stderr,"ERROR (%s): Package configuration directory ",
+				p->name);
+		fprintf(stderr,"has not been set. Cannot continue.\n");
+		return 1;
+	}
+
+	char *buffer = malloc(sizeof(char)*MAX_LINE);
+	char *cmd = malloc(sizeof(char)*MAX_LINE);
+	char *output = "-q"; //does't get freed. should?
+	#ifdef DEBUG
+	output = "";
+	#endif
+
+	char filename[MAX_LINE];
+	char *path = getenv("MPKG_REPO_FILE");
+	sprintf(filename,"%s",path);
+
+	// Open repository config file 
+	FILE *fp = fopen(filename,"r");
+	if( !fp ) {
+		fprintf(stderr,"Cound not open repository configuration file: %s\n",filename);
+		return 1;
+	}
+
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Getting repositories from %s\n",filename);
+	#endif
+
+	while( fgets(buffer,sizeof(char)*MAX_LINE,fp) != NULL ) {
+		if(buffer[strlen(buffer) - 1] == '\n') {
+			buffer[strlen(buffer) - 1] = '\0';
+		}
+		sprintf(cmd,"wget %s -N %s/%s-%s.mpkg\n",output,buffer,p->name,p->version);
+		int result = system(cmd);
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Download cmd: %s, download: %d\n",
+			cmd,result);
+		#endif
+		if(result == 0) {
+			sprintf(cmd,"mv %s-%s.mpkg %s/\n",p->name,p->version, destdir);
+			#ifdef DEBUG
+			fprintf(stderr,"DEBUG: %s\n",cmd);
+			#endif
+			system(cmd); //no need to test, tested in later funcs
+			free(buffer); free(cmd);
+			return 0;
+		}
+	}
+
+	free(buffer); free(cmd);
+	return 1;
+}
+
 int PackageLoadConfig( p )
 	package *p;
 {
@@ -39,15 +103,21 @@ int PackageLoadConfig( p )
 						Cannot continue.",p->name);
 		return 1;
 	}
-	
+
+	if(PackageDownloadConfig(p) != 0) {
+		fprintf(stderr,"ERROR (%s): Package not available on ",
+			p->name);
+		fprintf(stderr,"repositories. Cannot continue.\n");
+		return 1;
+	}		
+
 	char filename[MAX_LINE];
 	char *path = getenv("MPKG_CONF_DIR");
 	sprintf(filename,"%s/%s-%s.mpkg",path,p->name,p->version);
 	#ifdef DEBUG
 	fprintf(stderr,"DEBUG: Loading package file: %s\n",filename);
 	#endif
-
-	//call config to load main pkg file
+	ConfigParseEnvironment(filename);
 
 	return 0;
 }

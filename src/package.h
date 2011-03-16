@@ -3,6 +3,7 @@
 
 package *PackageInit( char* );
 void PackageSetVersion( package*,char* );
+int PackageDownloadConfig( package* );
 int PackageLoadConfig( package* );
 void PackageAddDepends( package*,package* );
 void PackageDestroy( package* );
