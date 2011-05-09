@@ -5,6 +5,7 @@
 
 #include "test-package.h"
 #include "package.h"
+#include "../src/config.h"
 
 void testPackageInit (void)
 {

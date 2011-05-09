@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "globals.h"
 #include "config.h"
 
@@ -13,8 +14,8 @@ char *ConfigParseVars(line)
 	while( *lptr && *lptr != '\n' ) {
 		if( *lptr == '$' ) {
 			
-			// Move past the '$' and if there is a '{' then move past that
-			// as well.
+			// Move past the '$' and if there is a '{' then move 
+			// past that as well.
 			lptr++;
 			if( *lptr == '{' ) lptr++;
 			
@@ -102,3 +103,44 @@ int ConfigParseEnvironment(filename)
 	return 0;
 }
 
+char *ConfigParseAssignName(line)
+	char *line;
+{
+	if(strcmp(line,"") == 0) { //empty line 
+		return(strdup(""));
+	}
+
+	char *valP; char *retVal;
+	valP = (char*)malloc(sizeof(char) * strlen(line));
+	*valP = *line;
+	retVal = valP;
+	int i = 0;
+	while((valP[i] = line[i]) != '\0') {
+		if(valP[i] == '=' || valP[i] == ' ') valP[i] = '\0';
+		i++;
+	}
+	return(strdup(retVal));
+}
+
+char *ConfigParseAssignVal(line)
+	char *line;
+{
+	if(strcmp(line,"") == 0) { //empty line 
+		return(strdup(""));
+	}
+
+	char *retVal;
+	int i = 0;
+	while(line[i] != '\0') {
+		if(line[i] == '=') {
+			i++;
+			retVal = &line[i]; //beginning of retVal
+			while(line[i] == ' ') { //strip leading spaces
+				i++;
+				retVal = &line[i];
+			}
+		} else i++;
+	}
+
+	return(strdup(retVal));
+}

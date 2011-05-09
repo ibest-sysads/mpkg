@@ -3,6 +3,7 @@
 
 #include "../src/globals.h"
 #include "../src/package.h"
+#include "../src/config.h"
 
 package *p1;
 

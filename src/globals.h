@@ -12,8 +12,10 @@ typedef struct _package {
 	char *name;
 	char *version;
 	int depcount;
+	int dircount;
 	State state;
 	struct _package *depends[MAX_DEPS];
+	char **directs[MAX_WORD];
 } package;
 
 #endif

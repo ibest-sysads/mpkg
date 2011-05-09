@@ -98,10 +98,10 @@ int main(argc,argv)
 	package *mainp = PackageInit(main_pkg_name);
 	PackageSetVersion(mainp,main_pkg_version);
 	PackageLoadConfig(mainp);
+	PackageProcess(mainp);
 
 	PackageDestroy(mainp);
 
 	//cleanup
-	//this seg faults, no changes were knowingly made	
 	free(globalconf);
 }

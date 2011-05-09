@@ -4,7 +4,7 @@ CFLAGS=-O0 -g -D _GLOBALCONF -lcunit -fprofile-arcs -ftest-coverage
 all: test-package test-control test-config
 
 #package
-test-package: test-package.o package.o ../src/package.o
+test-package: test-package.o package.o ../src/package.o ../src/config.o
 	gcc $(CFLAGS) -o test-package $^
 
 test-package.o: test-package.c test-package.h package.h
@@ -17,7 +17,7 @@ package.o: package.c package.h test-package.h
 	gcc $(CFLAGS) -c ../src/package.c -o ../src/package.o
 
 #control
-test-control: test-control.o control.o ../src/control.o ../src/package.o
+test-control: test-control.o control.o ../src/control.o ../src/package.o ../src/config.o
 	gcc $(CFLAGS) -o test-control $^
 
 test-control.o: test-control.c test-control.h control.h
