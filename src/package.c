@@ -19,13 +19,10 @@ package *PackageInit( name )
 
 	for(i=0; i<MAX_DEPS; i++)	
         	p->depends[i] = NULL;
-	for(i=0; i<MAX_WORD; i++)	
-        	p->directs[i] = NULL;
 
 	p->state = InitS;
 	p->version = NULL;
 	p->depcount = 0;
-	p->dircount = 0;
 }
 
 void PackageSetVersion( p,v )
@@ -136,21 +133,29 @@ int PackageLoadConfig( p )
 	#endif
 	
 	while( fgets(buffer,sizeof(char)*MAX_LINE,fp) != NULL ) {
-		char *name = ConfigParseAssignName(buffer);
-		char *val = ConfigParseAssignVal(buffer);
 		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: Config line: %s --> ",buffer);
-		fprintf(stderr,"Parsed Name: %s; ",name);
-		fprintf(stderr,"Parsed Value: %s\n",val);
+		fprintf(stderr,"Parsed Name: %s; ",ConfigParseAssignName(buffer));
+		fprintf(stderr,"Parsed Value: %s\n",ConfigParseAssignVal(buffer));
 		#endif
-		PackageSetVar(p,name,val);
-		free(name); free(val);
+		PackageSetVar(p,
+				ConfigParseAssignName(buffer),
+				ConfigParseAssignVal(buffer));	
 	}
 
 	return 0;
 }
 
-int PackageSetVar(package *p, char *name, char *val) {
+int PackageSetVar(p,name,val)
+	package *p; 
+	char *name;
+	char *val;
+{
+	//clean name and val
+	// trailing newline
+	if(name[strlen(name) - 1] == '\n') name[strlen(name) - 1] = '\0'; 
+	if(val[strlen(val) - 1] == '\n') val[strlen(val) - 1] = '\0';	
+
 	//variables
 	if(strcmp(name,"PKNAME") == 0) {
 		p->name = strdup(val);
@@ -163,6 +168,20 @@ int PackageSetVar(package *p, char *name, char *val) {
 		p->version = strdup(val);
 		#ifdef DEBUG
 		fprintf(stderr,"DEBUG: Setting %s: %s\n",name,p->version);
+		#endif
+		return 0;
+	}
+	if(strcmp(name,"PKGROUP") == 0) {
+		p->group = strdup(val);
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Setting %s: %s\n",name,p->group);
+		#endif
+		return 0;
+	}
+	if(strcmp(name,"PKSRC") == 0) {
+		p->src = strdup(val);
+		#ifdef DEBUG
+		fprintf(stderr,"DEBUG: Setting %s: %s\n",name,p->src);
 		#endif
 		return 0;
 	}
@@ -198,22 +217,10 @@ int PackageSetVar(package *p, char *name, char *val) {
 		return 0;
 	} //end DEPS
 
-	//directives
-	/*if (strcmp(name,"#!setup") == 0) {
-		PackageAddDirectiveName(name);
-		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: Adding directive %s\n",name);
-		#endif
-		return 0;
-	}*/
-	
-	//dump whatever does match under the last parsed directive
-	
 	#ifdef DEBUG
 	fprintf(stderr,"DEBUG: package var not matched: %s\n",name);
 	#endif
 	return 1;
-
 }
 
 void PackageAddDepends( p,d )
@@ -226,20 +233,6 @@ void PackageAddDepends( p,d )
 	#ifdef DEBUG
 	fprintf(stderr,"DEBUG: Adding %s to %s - %d\n",d->name,p->name,p->depcount); 
 	#endif
-}
-
-int PackageAddDirectiveName( name ) 
-	char *name;
-{
-
-	return 0;
-}
-
-int PackageAddDirectiveVal( val ) 
-	char *val;
-{
-
-	return 0;
 }
 
 void PackageDestroy( p )
@@ -294,23 +287,4 @@ static void PackagePrintIndent( void ) {
   int i;
   for( i=0; i<indent; i++ )
     printf(" ");
-}
-
-int PackageProcess ( p ) 
-	package *p;
-{
-	if(p == NULL) return 1;
-
-	//first process dependencies
-	int i;
-	for(i = 0; i < p->depcount; i++) {
-		PackageProcess(p->depends[i]);
-	}
-
-	#ifdef DEBUG
-	fprintf(stderr,"DEBUG: Processing package %s-%s\n",p->name,p->version);
-	#endif
-
-	//now process current package
-	
 }

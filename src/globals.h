@@ -11,11 +11,11 @@ typedef enum { InitS,LoadedS,PreBuildS,BuiltS,InstallS,CleanS } State;
 typedef struct _package {
 	char *name;
 	char *version;
-	int depcount;
-	int dircount;
+	char *group;
+	char *src;
+	int depcount; //dependency number
 	State state;
-	struct _package *depends[MAX_DEPS];
-	char **directs[MAX_WORD];
+	struct _package *depends[MAX_DEPS]; //dependency list
 } package;
 
 #endif

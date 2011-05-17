@@ -3,7 +3,8 @@
 #ifndef _CONTROL_H
 #define _CONTROL_H
 
-void ControlBuild(package*);
+int ControlBuild(package*);
+int ControlExecDirect(package*,char*);
 
 #endif
 

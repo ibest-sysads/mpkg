@@ -7,6 +7,8 @@
 #include "package.h" 
 #include "control.h"
 
+#include "buildConfig.h" //gets mpkg.conf location 
+
 #define CONFIGPATH_LENGTH 2048
 
 //not sure where to put these...
@@ -45,7 +47,8 @@ static int GetOptions(argc,argv)
 
 	// Set up defaults
 	opt_debug = 0;
-	strncpy(opt_config,"/etc/mpkg/mpkg.conf",CONFIGPATH_LENGTH);
+	//strncpy(opt_config,"/etc/mpkg/mpkg.conf",CONFIGPATH_LENGTH);
+	strncpy(opt_config,MPKG_CONF_FILE,CONFIGPATH_LENGTH);
 	
 	while(1) {
 		c = getopt_long(argc,argv,"c:i:v:hd",long_options,&option_index);
@@ -97,8 +100,8 @@ int main(argc,argv)
 
 	package *mainp = PackageInit(main_pkg_name);
 	PackageSetVersion(mainp,main_pkg_version);
-	PackageLoadConfig(mainp);
-	PackageProcess(mainp);
+	PackageLoadConfig(mainp); //loads deps
+	ControlBuild(mainp);
 
 	PackageDestroy(mainp);
 

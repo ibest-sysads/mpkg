@@ -4,8 +4,11 @@ CC=gcc
 CFLAGS=-O0 -g -D _GLOBALCONF
 OBJS=main.o package.o control.o config.o
 
-all: $(OBJS)
+all: build_config $(OBJS)
 	gcc $(CFLAGS) -o mpkg $(OBJS)
+
+build_config:
+	echo "#define MPKG_CONF_FILE \"${MPKG_CONF_DIR}/mpkg.conf\"" > buildConfig.h
 
 package.o: globals.h package.h package.c
 	gcc $(CFLAGS) -c package.c -o package.o  
