@@ -20,6 +20,7 @@ static struct option long_options[] = {
 	{"config",	1, 0, 	'c'},
 	{"install",	1, 0, 	'i'},
 	{"version",	1, 0, 	'v'},
+	{"pretend",	0, 0,	'p'},
 	{"help",	0, 0, 	'h'},
 	{"debug",	0, 0,	0},
 	{0,0,0,0}
@@ -32,8 +33,10 @@ void ShowUsage() {
 	printf("		Environment configuration file\n");
 	printf(" -i <name>, install <name> \n");
 	printf("		Package install\n");
-	printf(" -v <version>, install <version> \n");
+	printf(" -v <version>, version <version> \n");
 	printf("		Package version\n");
+	printf(" -p, pretend <version> \n");
+	printf("		pretend install\n");
 	printf("Report bugs to /dev/null\n");
 	exit(0);
 }
@@ -51,7 +54,7 @@ static int GetOptions(argc,argv)
 	strncpy(opt_config,MPKG_CONF_FILE,CONFIGPATH_LENGTH);
 	
 	while(1) {
-		c = getopt_long(argc,argv,"c:i:v:hd",long_options,&option_index);
+		c = getopt_long(argc,argv,"c:i:v:phd",long_options,&option_index);
 		if(c == -1) break;
 		switch(c) {
 			case 'h':
@@ -101,6 +104,8 @@ int main(argc,argv)
 	package *mainp = PackageInit(main_pkg_name);
 	PackageSetVersion(mainp,main_pkg_version);
 	PackageLoadConfig(mainp); //loads deps
+	printf("%s dependency tree:\n",mainp->name);
+	ControlPrintDeps(mainp);
 	ControlBuild(mainp);
 
 	PackageDestroy(mainp);

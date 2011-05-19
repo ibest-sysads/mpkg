@@ -81,8 +81,10 @@ int ConfigParseEnvironment(filename)
 		
 		int count = sscanf(buffer,"%s = %s\n",key,value);
 		if( count == 2 ) {
+			#ifdef DEBUG
 			fprintf(stderr,"DEBUG: Config key: %s\n",key);
 			fprintf(stderr,"DEBUG: Config value: %s\n",value);
+			#endif
 			char *parsed = ConfigParseVars(value);
 			int retval = setenv(key,parsed,1);
 			if(retval) fprintf(stderr,"Could not set %s to %s\n",key,parsed);

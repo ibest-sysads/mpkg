@@ -1,20 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <errno.h>
 #include "globals.h"
 #include "control.h"
 
-void ControlUnsetEnv( p )
+int DEPTH = 0;
+
+int ControlSetEnv( p )
 	package *p;
 {
-	return;
+	int status = (
+		setenv("PKNAME",p->name,1)
+		|| setenv("PKVERSION",p->version,1)
+		|| setenv("PKGROUP",p->group,1)
+		|| setenv("PKSRC",p->src,1)
+		);
+	return status;
 }
 
-void ControlSetEnv( p )
+int ControlUnsetEnv( p )
 	package *p;
 {
-	return;	
+	return 1;	
 }
 
 int ControlBuild( p )
@@ -39,7 +48,20 @@ int ControlBuild( p )
 		printf("Skipping: %s - already installed\n",p->name);
 		return 1;
 	}
+
 	printf("Building: %s\n",p->name);
+	if(ControlSetEnv(p)) {
+		fprintf(stderr,"Could not set package %s environment.\n",
+			p->name);
+		fprintf(stderr,"Cannot continue.\n");
+		return(1);
+	}
+
+	if(PackageGetSource(p)) {
+		fprintf(stderr,"Could not open package source: %s.\n",p->src);
+		fprintf(stderr,"Cannot continue.\n");
+		return 1;
+	}
 
         // Open package config file
         char filename[MAX_LINE];
@@ -51,7 +73,7 @@ int ControlBuild( p )
         #endif
         FILE *fp = fopen(filename,"r");
         if( !fp ) {
-                fprintf(stderr,"Cound not open package configuration file: %s\n",filename);
+                fprintf(stderr,"Could not open package configuration file: %s\n",filename);
                 return 1;
         }
         #ifdef DEBUG
@@ -70,6 +92,12 @@ int ControlBuild( p )
 
 	p->state = BuiltS;
 	printf("Built: %s\n",p->name);
+	if(ControlUnsetEnv(p)) {
+		fprintf(stderr,"Could not unset package %s environment.\n",
+			p->name);
+		fprintf(stderr,"Cannot continue.\n");
+		return 1;
+	}
 
 	return 0;
 }
@@ -80,13 +108,24 @@ int ControlExecDirect(p,val)
 {
 	char *path;
 	path = getenv("MPKG_BUILD_DIR"); //default location
+	char *cmd = NULL; //directive command
 
         //clean name and val
         // trailing newline
         if(val[strlen(val) - 1] == '\n') val[strlen(val) - 1] = '\0';
 
-        //directives
-        if (strcmp(val,"#~prebuild") == 0) {
+        //ignore package properties
+        if (	(strstr(val,"PKNAME") != NULL
+		|| strstr(val,"PKVERSION") != NULL
+		|| strstr(val,"PKGROUP") != NULL
+		|| strstr(val,"PKSRC") != NULL
+		|| strstr(val,"DEPS") != NULL
+		)
+		&& strstr(val,"$") == NULL
+	) {
+		return 0;
+	}
+        else if (strcmp(val,"#~prebuild") == 0) {
                 p->state = PreBuildS;
 		path = getenv("MPKG_BUILD_DIR");
                 #ifdef DEBUG
@@ -95,31 +134,74 @@ int ControlExecDirect(p,val)
         }
         else if (strcmp(val,"#~install") == 0) {
                 p->state = InstallS;
+		path = getenv("MPKG_BUILD_DIR");
+		sprintf(path,"%s/%s-%s",path,p->name,p->version);
                 #ifdef DEBUG
                 fprintf(stderr,"DEBUG: Setting state to InstallS\n");
                 #endif
         }
         else if (strcmp(val,"#~clean") == 0) {
                 p->state = CleanS;
+		path = getenv("MPKG_BUILD_DIR");
                 #ifdef DEBUG
                 fprintf(stderr,"DEBUG: Setting state to CleanS\n");
                 #endif
-        } else {
+        }        
+	else if (strcmp(val,"#~module") == 0) {
+                p->state = BuiltS;
+		path = getenv("MPKG_BUILD_DIR");
+                #ifdef DEBUG
+                fprintf(stderr,"DEBUG: Setting state to BuiltS\n");
+                #endif
+ 	} else {
+		cmd = val;
 	        #ifdef DEBUG
-	        fprintf(stderr,"DEBUG: executing command '%s'\n",val);
+	        fprintf(stderr,"DEBUG: Setting execute command to '%s'\n",cmd);
 	        #endif
 	}
 	
         #ifdef DEBUG
 	fprintf(stderr,"DEBUG: changing to directory '%s'\n", path);
 	#endif
-	if(chdir(getenv(path))) {
+	if(chdir(path)) {
 			fprintf(stderr,"ERROR: Could not change directory ");
-			fprintf(stderr,"to '%s', error: '%s'. ", 
+			fprintf(stderr,"to '%s', error: '%s'.\n", 
 				path,strerror(errno));
+			char buffer[MAX_WORD];
+			getcwd(buffer, MAX_WORD);
+			fprintf(stderr," (Current directory is '%s'.)\n",
+				buffer);
 			fprintf(stderr,"Cannot continue.\n");
 		return 1;
 	}
+
+	//if cmd set, execute directive mode
+	if(cmd != NULL) return(system(cmd));
+
 	return 0;
 }
 
+void ControlPrintDeps( p )
+	package *p;
+{	
+        if(p == NULL) return;
+
+	#ifdef DEBUG
+	printf("%*s:%d\n",DEPTH + (int)strlen(p->name),p->name,DEPTH);
+	#else
+	printf("%*s\n",DEPTH + (int)strlen(p->name),p->name);
+	#endif        
+
+	int i;
+        for(i = 0; i < p->depcount; i++) {
+                PackageLoadConfig(p->depends[i]);
+		if(DEPTH > MAX_DEPTH) {
+			fprintf(stderr, "ERROR: MAX_DEPTH exceeded for ");
+			fprintf(stderr,"dependencies. Cannot continue");
+			return;
+		}
+		DEPTH++;
+		ControlPrintDeps(p->depends[i]);
+		DEPTH--;
+        }
+}

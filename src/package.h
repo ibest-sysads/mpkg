@@ -6,6 +6,7 @@ void PackageSetVersion( package*,char* );
 void PackageSetState( package*,char* );
 int PackageDownloadConfig( package* );
 int PackageLoadConfig( package* );
+int PackageGetSource( package* );
 void PackageAddDepends( package*,package* );
 int PackageAddDirectiveName( char* );
 int PackageAddDirectiveVal( char* );

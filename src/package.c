@@ -49,9 +49,9 @@ int PackageDownloadConfig( p )
 		return 1;
 	}
 
-	char *buffer = malloc(sizeof(char)*MAX_LINE);
+	char buffer[MAX_LINE];
 	char *cmd = malloc(sizeof(char)*MAX_LINE);
-	char *output = "-q"; //does't get freed. should?
+	char *output = "-q"; 
 	#ifdef DEBUG
 	output = "";
 	#endif
@@ -75,10 +75,12 @@ int PackageDownloadConfig( p )
 		if(buffer[strlen(buffer) - 1] == '\n') {
 			buffer[strlen(buffer) - 1] = '\0';
 		}
-		sprintf(cmd,"wget %s -N %s/%s-%s.mpkg\n",output,buffer,p->name,p->version);
-		int result = system(cmd);
+		sprintf(cmd,"wget %s -N %s/%s-%s.mpkg\n",output,buffer,p->name,p->version);	
+		int result = 1;
+		if(buffer[0] == '#') result = 1;
+		else result = system(cmd);
 		#ifdef DEBUG
-		fprintf(stderr,"DEBUG: Download cmd: %s, download: %d\n",
+		fprintf(stderr,"DEBUG: Download cmd: '%s', download: %d\n",
 			cmd,result);
 		#endif
 		if(result == 0) {
@@ -87,12 +89,12 @@ int PackageDownloadConfig( p )
 			fprintf(stderr,"DEBUG: %s\n",cmd);
 			#endif
 			system(cmd); //no need to test, tested in later funcs
-			free(buffer); free(cmd);
+			free(cmd);
 			return 0;
 		}
 	}
 
-	free(buffer); free(cmd);
+	free(cmd);
 	return 1;
 }
 
@@ -144,6 +146,26 @@ int PackageLoadConfig( p )
 	}
 
 	return 0;
+}
+
+int PackageGetSource( p )
+	package *p;
+{
+	char *cmd = malloc(sizeof(char)*MAX_LINE);
+	char *output = "-q"; 
+	#ifdef DEBUG
+	output = "";
+	#endif
+	sprintf(cmd,"wget %s -N %s\n",
+			output,p->src);	
+	#ifdef DEBUG
+	fprintf(stderr,"DEBUG: Downloading package %s source with command:\n",
+		p->name);
+	fprintf(stderr," '%s'\n",cmd);
+	#endif
+	int status = system(cmd);
+	free(cmd);
+	return(status);
 }
 
 int PackageSetVar(p,name,val)

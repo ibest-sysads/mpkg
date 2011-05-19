@@ -25,7 +25,7 @@ main.o: globals.h main.c
 install:
 	mkdir -p ${MPKG_HOME}/
 	mkdir -p ${MPKG_CONF_DIR}/
-	#cp bin ${MPKG_HOME}/
+	cp ../bin/* ${MPKG_HOME}/
 	cp mpkg ${MPKG_HOME}/
 	cp -rf ../etc/* ${MPKG_CONF_DIR}/
 
